@@ -3,7 +3,7 @@ using System.Net;
 
 namespace nue.Endpoints
 {
-    public class Favicon : IApiEndpoint
+    internal class Favicon : IApiEndpoint
     {
         public string Path { get; } = "/favicon.ico";
 

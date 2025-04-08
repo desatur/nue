@@ -2,9 +2,9 @@
 
 namespace nue.Splash
 {
-    public class Splash
+    internal static class Splash
     {
-        public Splash()
+        internal static void Display()
         {
             string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             Console.ForegroundColor = ConsoleColor.Red;

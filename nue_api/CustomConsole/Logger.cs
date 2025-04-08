@@ -2,6 +2,7 @@
 {
     public class Logger
     {
+        public static readonly Logger Instance = new();
         private string logFilePath;
 
         public Logger()

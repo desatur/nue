@@ -6,23 +6,28 @@ namespace nue
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            Splash.Splash _ = new();
-            Server instance = new();
-            instance.Start();
-            HelloWorld hello = new();
-            Favicon favicon = new();
-            Upload upload = new();
-            instance.RegisterEndpoint(hello);
-            instance.RegisterEndpoint(favicon);
-            instance.RegisterEndpoint(upload);
+        private static List<IApiEndpoint> DefaultEndpoints;
 
-            CommandSystem commandSystem = new CommandSystem();
+        static void Main(/*string[] args*/)
+        {
+            Splash.Splash.Display();
+            Logger.Instance.Log(LogType.Info, "Initializing classes of Default Endpoints");
+            DefaultEndpoints = new ()
+            {
+                { new HelloWorld() },
+                { new Favicon() },
+                { new Vitals() },
+            };
+            Server.Instance.Start();
+            Logger.Instance.Log(LogType.Info, "Registering Default Endpoints");
+            foreach (var endpoint in DefaultEndpoints)
+            {
+                Server.Instance.RegisterEndpoint(endpoint);
+            }
+            Logger.Instance.Log(LogType.Info, "Everything is done I guess?");
             while (true)
             {
-                string commandInput = Console.ReadLine();
-                commandSystem.ProcessCommand(commandInput);
+                CommandSystem.Instance.ProcessCommand(Console.ReadLine());
             }
         }
     }

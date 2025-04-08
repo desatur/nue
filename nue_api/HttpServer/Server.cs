@@ -8,21 +8,20 @@ namespace nue.HttpServer
         private readonly string endpoint;
         private readonly ushort port;
         private readonly string url;
-        private readonly HttpListener listener;
-        private readonly List<IApiEndpoint> endpoints;
-        private readonly Logger Logger;
+        public readonly List<IApiEndpoint> endpoints;
+        public static readonly Server Instance = new();
+        public readonly HttpListener listener;
 
-        public Server(string endpoint = "localhost", ushort port = 8080)
+        public Server(string endpoint = "localhost", ushort port = 8069)
         {
             this.endpoint = string.IsNullOrEmpty(endpoint) ? "localhost" : endpoint;
-            this.port = port == 0 ? (ushort)8080 : port;
+            this.port = port == 0 ? (ushort)8069 : port;
 
             listener = new HttpListener();
             url = $"http://{this.endpoint}:{this.port}/";
             listener.Prefixes.Add(url);
 
-            endpoints = new List<IApiEndpoint>();
-            Logger = new Logger();
+            endpoints = [];
         }
 
         public void Start()
@@ -32,12 +31,12 @@ namespace nue.HttpServer
                 try
                 {
                     listener.Start();
-                    Logger.Log(LogType.Info, $"Server started. @ -> {url}");
+                    Logger.Instance.Log(LogType.Info, $"Server started. @ -> {url}");
                     Task.Run(() => Listen());
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LogType.Error, $"Error starting server: {ex.Message}");
+                    Logger.Instance.Log(LogType.Error, $"Error starting server: {ex.Message}");
                 }
             }
         }
@@ -57,7 +56,7 @@ namespace nue.HttpServer
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LogType.Error, $"Error processing request: {ex.Message}");
+                    Logger.Instance.Log(LogType.Error, $"Error processing request: {ex.Message}");
                 }
             }
         }
@@ -66,12 +65,12 @@ namespace nue.HttpServer
         {
             if (endpoints.Any(ep => ep.Path == endpoint.Path))
             {
-                Logger.Log(LogType.Warning, $"Endpoint '{endpoint.Path}' is already registered.");
+                Logger.Instance.Log(LogType.Warning, $"Endpoint '{endpoint.Path}' is already registered.");
                 return;
             }
 
             endpoints.Add(endpoint);
-            Logger.Log(LogType.Info, $"Endpoint '{endpoint.Path}' registered successfully.");
+            Logger.Instance.Log(LogType.Info, $"Endpoint '{endpoint.Path}' registered successfully.");
         }
 
         public void UnregisterEndpoint(string endpointPath)
@@ -80,11 +79,11 @@ namespace nue.HttpServer
             if (endpoint != null)
             {
                 endpoints.Remove(endpoint);
-                Logger.Log(LogType.Info, $"Endpoint '{endpointPath}' unregistered successfully.");
+                Logger.Instance.Log(LogType.Info, $"Endpoint '{endpointPath}' unregistered successfully.");
             }
             else
             {
-                Logger.Log(LogType.Warning, $"Endpoint '{endpointPath}' not found to unregister.");
+                Logger.Instance.Log(LogType.Warning, $"Endpoint '{endpointPath}' not found to unregister.");
             }
         }
 
@@ -103,11 +102,11 @@ namespace nue.HttpServer
 
             if (replaced)
             {
-                Logger.Log(LogType.Info, $"Endpoint '{oldEndpoint.Path}' reloaded successfully.");
+                Logger.Instance.Log(LogType.Info, $"Endpoint '{oldEndpoint.Path}' reloaded successfully.");
             }
             else
             {
-                Logger.Log(LogType.Warning, $"Endpoint '{oldEndpoint.Path}' not found to reload.");
+                Logger.Instance.Log(LogType.Warning, $"Endpoint '{oldEndpoint.Path}' not found to reload.");
             }
         }
 
@@ -122,7 +121,7 @@ namespace nue.HttpServer
             {
                 RegisterEndpoint(endpoint);
             }
-            Logger.Log(LogType.Info, "All endpoints reregistered successfully.");
+            Logger.Instance.Log(LogType.Info, "All endpoints reregistered successfully.");
         }
 
         private void ProcessRequest(HttpListenerContext context)
@@ -130,7 +129,7 @@ namespace nue.HttpServer
             HttpListenerRequest request = context.Request;
             string requestUrl = request.Url.AbsolutePath;
 
-            Logger.Log(LogType.Info, $"RQST by {request.UserHostAddress} for {requestUrl}");
+            Logger.Instance.Log(LogType.Info, $"RQST by {request.UserHostAddress} for {requestUrl}");
 
             IApiEndpoint matchedEndpoint = FindMatchingEndpoint(requestUrl);
             if (matchedEndpoint != null)
@@ -140,12 +139,12 @@ namespace nue.HttpServer
             else
             {
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                using (StreamWriter writer = new StreamWriter(context.Response.OutputStream))
+                using (var writer = new StreamWriter(context.Response.OutputStream))
                 {
                     writer.Write("Endpoint not found");
                 }
                 context.Response.Close();
-                Logger.Log(LogType.Warning, $"Endpoint not found for {requestUrl}");
+                Logger.Instance.Log(LogType.Warning, $"Endpoint not found for {requestUrl}");
             }
         }
 
@@ -160,7 +159,7 @@ namespace nue.HttpServer
             {
                 listener.Stop();
                 listener.Close();
-                Logger.Log(LogType.Info, $"Server stopped. !@ -> {url}");
+                Logger.Instance.Log(LogType.Info, $"Server stopped. !@ -> {url}");
             }
         }
     }

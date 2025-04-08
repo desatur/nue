@@ -5,16 +5,15 @@ namespace nue.CustomConsole
     public class CommandSystem
     {
         private Dictionary<string, ICommand> commands;
-        private Logger Logger;
+        public static readonly CommandSystem Instance = new();
 
         public CommandSystem()
         {
             commands = new Dictionary<string, ICommand>
             {
                 { "quit", new Quit() },
-                // Add more commands here if needed
             };
-            Logger = new Logger();
+            Logger.Instance.Log(LogType.Info, "CommandSystem started");
         }
 
         public void ProcessCommand(string commandInput)
@@ -25,7 +24,7 @@ namespace nue.CustomConsole
             }
             else
             {
-                Logger.Log(LogType.Error, $"Command not recognized.");
+                Logger.Instance.Log(LogType.Error, $"Command not recognized.");
             }
         }
     }

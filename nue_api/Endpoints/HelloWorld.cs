@@ -10,7 +10,7 @@ namespace nue.Endpoints
         public async Task Handle(HttpListenerContext context)
         {
             context.Response.StatusCode = (int)HttpStatusCode.OK;
-            using (StreamWriter writer = new StreamWriter(context.Response.OutputStream))
+            using (StreamWriter writer = new(context.Response.OutputStream))
             {
                 await writer.WriteAsync("Hello World!");
             }
